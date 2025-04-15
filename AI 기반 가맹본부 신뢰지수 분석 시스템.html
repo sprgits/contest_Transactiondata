@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 기반 가맹본부 신뢰지수 분석 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .dashboard-card {
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        .dashboard-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .brand-row:hover {
+            background-color: #f0f4f8;
+            cursor: pointer;
+        }
+        .trust-excellent {
+            background-color: #d1e7dd;
+        }
+        .trust-good {
+            background-color: #d1ecf1;
+        }
+        .trust-average {
+            background-color: #fff3cd;
+        }
+        .trust-warning {
+            background-color: #f8d7da;
+        }
+        .gauge {
+            width: 100%;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .gauge-fill {
+            height: 100%;
+            border-radius: 5px;
+        }
+        .violation-badge {
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .tab-button {
+            border-bottom: 2px solid transparent;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+         {
+            .dashboard-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- 헤더 섹션 -->
+    <div class="container mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">AI 기반 가맹본부 신뢰지수 분석 시스템</h1>
+                <p class="text-gray-600 mt-1">공공데이터 기반 프랜차이즈 신뢰도 통합 대시보드 (2025년 04월 기준)</p>
+            </div>
+            <div class="flex space-x-2">
+                <select id="industry-filter" class="form-select rounded-md shadow-sm border-gray-300 focus:border-indigo-300 text-sm">
+                    <option value="all">전체 업종</option>
+                    <option value="coffee" selected>커피전문점</option>
+                    <option value="chicken">치킨</option>
+                    <option value="pizza">피자</option>
+                    <option value="convenience">편의점</option>
+                    <option value="bakery">베이커리</option>
+                </select>
+                <select id="year-filter" class="form-select rounded-md shadow-sm border-gray-300 focus:border-indigo-300 text-sm">
+                    <option value="2025" selected>2025년</option>
+                    <option value="2024">2024년</option>
+                    <option value="2023">2023년</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 요약 지표 섹션 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="dashboard-card bg-white p-4">
+                <div class="flex justify-between">
+                    <div>
+                        <h3 class="text-sm text-gray-500">평균 신뢰지수</h3>
+                        <p class="text-2xl font-bold text-gray-800">72.8</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-full w-12 h-12 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-blue-500"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">전년 대비 <span class="text-green-500">+2.3</span></p>
+            </div>
+            <div class="dashboard-card bg-white p-4">
+                <div class="flex justify-between">
+                    <div>
+                        <h3 class="text-sm text-gray-500">평균 계약해지율</h3>
+                        <p class="text-2xl font-bold text-gray-800">2.1%</p>
+                    </div>
+                    <div class="bg-red-50 rounded-full w-12 h-12 flex items-center justify-center">
+                        <i class="fas fa-times-circle text-red-500"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">전년 대비 <span class="text-red-500">+0.3%</span></p>
+            </div>
+            <div class="dashboard-card bg-white p-4">
+                <div class="flex justify-between">
+                    <div>
+                        <h3 class="text-sm text-gray-500">평균 폐점률</h3>
+                        <p class="text-2xl font-bold text-gray-800">8.5%</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center">
+                        <i class="fas fa-store-alt-slash text-yellow-500"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">전년 대비 <span class="text-green-500">-1.2%</span></p>
+            </div>
+            <div class="dashboard-card bg-white p-4">
+                <div class="flex justify-between">
+                    <div>
+                        <h3 class="text-sm text-gray-500">법 위반 브랜드 비율</h3>
+                        <p class="text-2xl font-bold text-gray-800">15.4%</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-full w-12 h-12 flex items-center justify-center">
+                        <i class="fas fa-gavel text-purple-500"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">전년 대비 <span class="text-green-500">-4.6%</span></p>
+            </div>
+        </div>
+
+        <!-- 신뢰지수 분포 차트 -->
+        <div class="dashboard-card bg-white p-4 mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">신뢰지수 분포</h2>
+            <div class="h-64">
+                <canvas id="distribution-chart"></canvas>
+            </div>
+            <div class="flex justify-center mt-2 text-sm text-gray-600">
+                <div class="flex items-center mx-2">
+                    <div class="w-3 h-3 bg-green-500 mr-1 rounded-sm"></div>
+                    <span>우수 (85점 이상)</span>
+                </div>
+                <div class="flex items-center mx-2">
+                    <div class="w-3 h-3 bg-blue-400 mr-1 rounded-sm"></div>
+                    <span>양호 (70-85점)</span>
+                </div>
+                <div class="flex items-center mx-2">
+                    <div class="w-3 h-3 bg-yellow-400 mr-1 rounded-sm"></div>
+                    <span>보통 (55-70점)</span>
+                </div>
+                <div class="flex items-center mx-2">
+                    <div class="w-3 h-3 bg-red-400 mr-1 rounded-sm"></div>
+                    <span>주의 (55점 미만)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 분석 탭 섹션 -->
+        <div class="dashboard-card bg-white mb-6">
+            <div class="flex border-b">
+                <div class="tab-button active" data-tab="ranking">브랜드 랭킹</div>
+                <div class="tab-button" data-tab="comparison">브랜드 비교</div>
+                <div class="tab-button" data-tab="industry">업종 분석</div>
+                <div class="tab-button" data-tab="trend">추이 분석</div>
+            </div>
+
+            <!-- 브랜드 랭킹 탭 -->
+            <div id="ranking-tab" class="tab-content active p-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700">
+                                <th class="py-2 px-4 text-left">순위</th>
+                                <th class="py-2 px-4 text-left">브랜드명</th>
+                                <th class="py-2 px-4 text-left">신뢰지수</th>
+                                <th class="py-2 px-4 text-left">계약해지율</th>
+                                <th class="py-2 px-4 text-left">폐점률</th>
+                                <th class="py-2 px-4 text-left">평균매출액(연)</th>
+                                <th class="py-2 px-4 text-left">법 위반</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="brand-row trust-excellent border-b" data-brand="starbucks">
+                                <td class="py-3 px-4">1</td>
+                                <td class="py-3 px-4 font-medium">스타벅스</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">92.5</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-green-500" style="width: 92.5%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">0.8%</td>
+                                <td class="py-3 px-4">1.2%</td>
+                                <td class="py-3 px-4">9.8억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-excellent border-b" data-brand="ediya">
+                                <td class="py-3 px-4">2</td>
+                                <td class="py-3 px-4 font-medium">이디야</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">87.3</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-green-500" style="width: 87.3%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">1.7%</td>
+                                <td class="py-3 px-4">3.2%</td>
+                                <td class="py-3 px-4">6.2억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-good border-b" data-brand="mega">
+                                <td class="py-3 px-4">3</td>
+                                <td class="py-3 px-4 font-medium">메가커피</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">82.1</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-blue-500" style="width: 82.1%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">2.1%</td>
+                                <td class="py-3 px-4">4.3%</td>
+                                <td class="py-3 px-4">5.5억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-good border-b" data-brand="hollys">
+                                <td class="py-3 px-4">4</td>
+                                <td class="py-3 px-4 font-medium">할리스</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">78.6</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-blue-500" style="width: 78.6%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">2.3%</td>
+                                <td class="py-3 px-4">5.1%</td>
+                                <td class="py-3 px-4">5.8억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-good border-b" data-brand="coffeebean">
+                                <td class="py-3 px-4">5</td>
+                                <td class="py-3 px-4 font-medium">커피빈</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">75.2</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-blue-500" style="width: 75.2%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">2.5%</td>
+                                <td class="py-3 px-4">4.8%</td>
+                                <td class="py-3 px-4">7.1억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-average border-b" data-brand="paiks">
+                                <td class="py-3 px-4">6</td>
+                                <td class="py-3 px-4 font-medium">빽다방</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">68.7</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-yellow-500" style="width: 68.7%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">3.2%</td>
+                                <td class="py-3 px-4">7.5%</td>
+                                <td class="py-3 px-4">4.2억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-average border-b" data-brand="compose">
+                                <td class="py-3 px-4">7</td>
+                                <td class="py-3 px-4 font-medium">컴포즈커피</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">63.9</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-yellow-500" style="width: 63.9%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">3.8%</td>
+                                <td class="py-3 px-4">9.1%</td>
+                                <td class="py-3 px-4">3.9억원</td>
+                                <td class="py-3 px-4">없음</td>
+                            </tr>
+                            <tr class="brand-row trust-warning border-b" data-brand="twosome">
+                                <td class="py-3 px-4">8</td>
+                                <td class="py-3 px-4 font-medium">투썸플레이스</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">51.4</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-red-500" style="width: 51.4%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">4.4%</td>
+                                <td class="py-3 px-4">8.8%</td>
+                                <td class="py-3 px-4">5.6억원</td>
+                                <td class="py-3 px-4">
+                                    <span class="violation-badge">법 위반 2건</span>
+                                </td>
+                            </tr>
+                            <tr class="brand-row trust-warning border-b" data-brand="yogerpresso">
+                                <td class="py-3 px-4">9</td>
+                                <td class="py-3 px-4 font-medium">요거프레소</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">48.2</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-red-500" style="width: 48.2%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">5.2%</td>
+                                <td class="py-3 px-4">12.6%</td>
+                                <td class="py-3 px-4">3.7억원</td>
+                                <td class="py-3 px-4">
+                                    <span class="violation-badge">법 위반 1건</span>
+                                </td>
+                            </tr>
+                            <tr class="brand-row trust-warning border-b" data-brand="gongcha">
+                                <td class="py-3 px-4">10</td>
+                                <td class="py-3 px-4 font-medium">공차</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <span class="font-bold mr-2">42.8</span>
+                                        <div class="gauge">
+                                            <div class="gauge-fill bg-red-500" style="width: 42.8%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">6.8%</td>
+                                <td class="py-3 px-4">15.3%</td>
+                                <td class="py-3 px-4">4.1억원</td>
+                                <td class="py-3 px-4">
+                                    <span class="violation-badge">법 위반 3건</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 브랜드 비교 탭 -->
+            <div id="comparison-tab" class="tab-content p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2">브랜드 비교</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="relative">
+                            <select id="brand-select-1" class="form-select rounded-md shadow-sm border-gray-300 focus:border-indigo-300">
+                                <option value="">브랜드 선택</option>
+                                <option value="ediya" selected>이디야</option>
+                                <option value="starbucks">스타벅스</option>
+                                <option value="twosome">투썸플레이스</option>
+                                <option value="hollys">할리스</option>
+                                <option value="mega">메가커피</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <select id="brand-select-2" class="form-select rounded-md shadow-sm border-gray-300 focus:border-indigo-300">
+                                <option value="">브랜드 선택</option>
+                                <option value="ediya">이디야</option>
+                                <option value="starbucks">스타벅스</option>
+                                <option value="twosome" selected>투썸플레이스</option>
+                                <option value="hollys">할리스</option>
+                                <option value="mega">메가커피</option>
+                            </select>
+                        </div>
+                        <button id="compare-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">
+                            비교하기
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="h-80">
+                        <canvas id="radar-chart"></canvas>
+                    </div>
+                    <div class="h-80">
+                        <canvas id="bar-comparison-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-2">세부 지표 비교</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="py-2 px-4 text-left">지표</th>
+                                    <th class="py-2 px-4 text-left">이디야</th>
+                                    <th class="py-2 px-4 text-left">투썸플레이스</th>
+                                    <th class="py-2 px-4 text-left">차이</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">신뢰지수</td>
+                                    <td class="py-3 px-4">87.3</td>
+                                    <td class="py-3 px-4">51.4</td>
+                                    <td class="py-3 px-4 text-green-600">+35.9</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">계약해지율</td>
+                                    <td class="py-3 px-4">1.7%</td>
+                                    <td class="py-3 px-4">4.4%</td>
+                                    <td class="py-3 px-4 text-green-600">-2.7%</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">폐점률</td>
+                                    <td class="py-3 px-4">3.2%</td>
+                                    <td class="py-3 px-4">8.8%</td>
+                                    <td class="py-3 px-4 text-green-600">-5.6%</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">평균매출액(연)</td>
+                                    <td class="py-3 px-4">6.2억원</td>
+                                    <td class="py-3 px-4">5.6억원</td>
+                                    <td class="py-3 px-4 text-green-600">+0.6억원</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">법 위반 건수</td>
+                                    <td class="py-3 px-4">0건</td>
+                                    <td class="py-3 px-4">2건</td>
+                                    <td class="py-3 px-4 text-green-600">-2건</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">가맹점수</td>
+                                    <td class="py-3 px-4">3,126개</td>
+                                    <td class="py-3 px-4">1,478개</td>
+                                    <td class="py-3 px-4 text-green-600">+1,648개</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">신규출점율</td>
+                                    <td class="py-3 px-4">12.8%</td>
+                                    <td class="py-3 px-4">5.6%</td>
+                                    <td class="py-3 px-4 text-green-600">+7.2%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">분석 인사이트</h3>
+                    <p class="text-blue-800">이디야와 투썸플레이스의 신뢰지수 차이는 <strong>35.9점</strong>으로 매우 큰 격차를 보입니다. 특히 계약해지율(이디야 1.7% vs 투썸 4.4%)과 폐점률(이디야 3.2% vs 투썸 8.8%)에서 큰 차이가 나타나며, 투썸플레이스는 최근 3년간 법 위반 이력이 2건 있어 신뢰도 감점 요인으로 작용하고 있습니다. 두 브랜드 모두 평균매출은 비슷한 수준이나, 이디야는 낮은 해지·폐점률과 높은 신규출점률을 보여 지속가능성 측면에서 우수한 평가를 받고 있습니다.</p>
+                </div>
+            </div>
+
+            <!-- 업종 분석 탭 -->
+            <div id="industry-tab" class="tab-content p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="h-72">
+                        <canvas id="industry-comparison-chart"></canvas>
+                    </div>
+                    <div class="h-72">
+                        <canvas id="industry-metrics-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-2">커피전문점 업종 경쟁 현황</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="py-2 px-4 text-left">구분</th>
+                                    <th class="py-2 px-4 text-left">브랜드 수</th>
+                                    <th class="py-2 px-4 text-left">평균 신뢰지수</th>
+                                    <th class="py-2 px-4 text-left">평균 계약해지율</th>
+                                    <th class="py-2 px-4 text-left">평균 폐점률</th>
+                                    <th class="py-2 px-4 text-left">평균 매출액</th>
+                                    <th class="py-2 px-4 text-left">법 위반 비율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">프리미엄</td>
+                                    <td class="py-3 px-4">5개</td>
+                                    <td class="py-3 px-4">82.4</td>
+                                    <td class="py-3 px-4">2.0%</td>
+                                    <td class="py-3 px-4">3.5%</td>
+                                    <td class="py-3 px-4">7.5억원</td>
+                                    <td class="py-3 px-4">20.0%</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">일반</td>
+                                    <td class="py-3 px-4">16개</td>
+                                    <td class="py-3 px-4">67.8</td>
+                                    <td class="py-3 px-4">3.2%</td>
+                                    <td class="py-3 px-4">7.8%</td>
+                                    <td class="py-3 px-4">5.2억원</td>
+                                    <td class="py-3 px-4">31.3%</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">저가형</td>
+                                    <td class="py-3 px-4">13개</td>
+                                    <td class="py-3 px-4">62.3</td>
+                                    <td class="py-3 px-4">4.1%</td>
+                                    <td class="py-3 px-4">9.6%</td>
+                                    <td class="py-3 px-4">3.8억원</td>
+                                    <td class="py-3 px-4">38.5%</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">특수형</td>
+                                    <td class="py-3 px-4">7개</td>
+                                    <td class="py-3 px-4">58.6</td>
+                                    <td class="py-3 px-4">4.6%</td>
+                                    <td class="py-3 px-4">10.2%</td>
+                                    <td class="py-3 px-4">4.1억원</td>
+                                    <td class="py-3 px-4">42.9%</td>
+                                </tr>
+                                <tr class="border-b font-medium bg-gray-50">
+                                    <td class="py-3 px-4">전체 평균</td>
+                                    <td class="py-3 px-4">41개</td>
+                                    <td class="py-3 px-4">68.9</td>
+                                    <td class="py-3 px-4">3.4%</td>
+                                    <td class="py-3 px-4">7.6%</td>
+                                    <td class="py-3 px-4">5.3억원</td>
+                                    <td class="py-3 px-4">32.6%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-green-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-green-800 mb-2">업종 분석 인사이트</h3>
+                    <p class="text-green-800">커피전문점 업종 내에서는 프리미엄 브랜드(스타벅스, 커피빈 등)의 평균 신뢰지수가 82.4점으로 가장 높고, 법 위반 비율도 20.0%로 가장 낮습니다. 반면 저가형·특수형 브랜드들은 상대적으로 낮은 신뢰지수와 높은 폐점률을 보이며, 법 위반 비율도 더 높게 나타납니다. 특히 가격 경쟁이 치열한 저가형 시장에서는 낮은 수익성으로 인해 가맹점 이탈률이 높아지는 경향이 있어, 예비 창업자들은 초기 투자비용뿐만 아니라 지속가능성 측면에서 신중한 선택이 필요합니다.</p>
+                </div>
+            </div>
+
+            <!-- 추이 분석 탭 -->
+            <div id="trend-tab" class="tab-content p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="h-72">
+                        <canvas id="trust-trend-chart"></canvas>
+                    </div>
+                    <div class="h-72">
+                        <canvas id="termination-trend-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-2">커피전문점 3년 트렌드 데이터</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="py-2 px-4 text-left">연도</th>
+                                    <th class="py-2 px-4 text-left">평균 신뢰지수</th>
+                                    <th class="py-2 px-4 text-left">상위 20% 평균</th>
+                                    <th class="py-2 px-4 text-left">하위 20% 평균</th>
+                                    <th class="py-2 px-4 text-left">평균 계약해지율</th>
+                                    <th class="py-2 px-4 text-left">평균 폐점률</th>
+                                    <th class="py-2 px-4 text-left">법 위반 건수</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">2023년</td>
+                                    <td class="py-3 px-4">65.2</td>
+                                    <td class="py-3 px-4">85.1</td>
+                                    <td class="py-3 px-4">41.6</td>
+                                    <td class="py-3 px-4">3.9%</td>
+                                    <td class="py-3 px-4">8.7%</td>
+                                    <td class="py-3 px-4">23건</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">2024년</td>
+                                    <td class="py-3 px-4">67.5</td>
+                                    <td class="py-3 px-4">86.8</td>
+                                    <td class="py-3 px-4">43.2</td>
+                                    <td class="py-3 px-4">3.6%</td>
+                                    <td class="py-3 px-4">8.1%</td>
+                                    <td class="py-3 px-4">18건</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">2025년</td>
+                                    <td class="py-3 px-4">68.9</td>
+                                    <td class="py-3 px-4">88.4</td>
+                                    <td class="py-3 px-4">45.7</td>
+                                    <td class="py-3 px-4">3.4%</td>
+                                    <td class="py-3 px-4">7.6%</td>
+                                    <td class="py-3 px-4">15건</td>
+                                </tr>
+                                <tr class="border-b font-medium bg-gray-50">
+                                    <td class="py-3 px-4">3년 변화율</td>
+                                    <td class="py-3 px-4 text-green-600">+5.7%</td>
+                                    <td class="py-3 px-4 text-green-600">+3.9%</td>
+                                    <td class="py-3 px-4 text-green-600">+9.9%</td>
+                                    <td class="py-3 px-4 text-green-600">-12.8%</td>
+                                    <td class="py-3 px-4 text-green-600">-12.6%</td>
+                                    <td class="py-3 px-4 text-green-600">-34.8%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-purple-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-purple-800 mb-2">트렌드 분석 인사이트</h3>
+                    <p class="text-purple-800">커피전문점 업종의 신뢰지수는 지난 3년간 꾸준히 상승하여, 2023년 65.2점에서 2025년 68.9점으로 5.7% 개선되었습니다. 특히 하위 20% 그룹의 신뢰지수 개선율(9.9%)이 상위 20% 그룹(3.9%)보다 높아, 전반적인 업계 건전성이 향상되고 있음을 보여줍니다. 계약해지율과 폐점률도 각각 12.8%, 12.6% 감소하여 가맹점 안정성이 증가하고 있으며, 법 위반 건수는 3년간 34.8% 대폭 감소하였습니다. 이는 정부의 가맹사업 규제 강화와 업계의 자율 정화 노력이 결합된 결과로 볼 수 있으며, 프랜차이즈 산업의 건전한 발전 추세를 보여주고 있습니다.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 브랜드 상세 분석 섹션 -->
+        <div id="brand-detail" class="dashboard-card bg-white p-4 mb-6" style="display: none;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="detail-brand-name" class="text-xl font-bold text-gray-800">브랜드명</h2>
+                <button id="close-detail" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="dashboard-card bg-gray-50 p-4">
+                    <h3 class="text-lg font-semibold mb-3">신뢰지수 종합</h3>
+                    <div class="flex items-center mb-4">
+                        <div id="detail-trust-score" class="text-4xl font-bold mr-3">87.3</div>
+                        <div id="detail-trust-grade" class="px-2 py-1 rounded text-white bg-green-500 text-sm font-medium">우수</div>
+                    </div>
+                    <div class="text-sm">
+                        <div class="flex justify-between mb-1">
+                            <span>업종 내 순위:</span>
+                            <span id="detail-industry-rank" class="font-medium">2위 / 41개</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>업종 평균 대비:</span>
+                            <span id="detail-vs-average" class="font-medium text-green-600">+18.4점</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>전년 대비:</span>
+                            <span id="detail-vs-last-year" class="font-medium text-green-600">+2.1점</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card bg-gray-50 p-4">
+                    <h3 class="text-lg font-semibold mb-3">핵심 지표</h3>
+                    <div class="text-sm space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>계약해지율:</span>
+                                <span id="detail-termination-rate" class="font-medium">1.7%</span>
+                            </div>
+                            <div class="gauge">
+                                <div id="detail-termination-gauge" class="gauge-fill bg-green-500" style="width: 17%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>폐점률:</span>
+                                <span id="detail-closure-rate" class="font-medium">3.2%</span>
+                            </div>
+                            <div class="gauge">
+                                <div id="detail-closure-gauge" class="gauge-fill bg-green-500" style="width: 32%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>평균매출액:</span>
+                                <span id="detail-average-sales" class="font-medium">6.2억원</span>
+                            </div>
+                            <div class="gauge">
+                                <div id="detail-sales-gauge" class="gauge-fill bg-blue-500" style="width: 62%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>법 위반:</span>
+                                <span id="detail-violation" class="font-medium">없음</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card bg-gray-50 p-4">
+                    <h3 class="text-lg font-semibold mb-3">가맹점 현황</h3>
+                    <div class="text-sm">
+                        <div class="flex justify-between mb-1">
+                            <span>총 가맹점 수:</span>
+                            <span id="detail-total-stores" class="font-medium">3,126개</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>신규출점 수:</span>
+                            <span id="detail-new-stores" class="font-medium">401개</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>폐점 수:</span>
+                            <span id="detail-closed-stores" class="font-medium">100개</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span>계약해지 수:</span>
+                            <span id="detail-terminated-stores" class="font-medium">53개</span>
+                        </div>
+                        <div class="h-24">
+                            <canvas id="detail-stores-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-3">3년간 추이 분석</h3>
+                <div class="h-64">
+                    <canvas id="detail-trend-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="mt-6 bg-blue-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">AI 분석 인사이트</h3>
+                <p id="detail-insight" class="text-blue-800">이디야는 신뢰지수 87.3점(우수)으로, 커피전문점 업종 내에서 2위를 차지하고 있습니다. 계약해지율 1.7%와 폐점률 3.2%는 모두 업종 평균(각각 3.4%, 7.6%)보다 현저히 낮아 가맹점 안정성이 매우 높은 수준입니다. 2023년부터 3년간 꾸준히 신뢰지수가 상승 중이며, 특히 가맹점 순증가율이 9.6%로 업계 평균(4.2%)의 2배 이상을 기록했습니다. 최근 3년간 법 위반 이력이 없고, 연평균 매출 6.2억원으로 업종 평균 대비 17% 높은 수준을 유지하고 있어, 예비 창업자에게 안정적인 선택지로 평가됩니다. 다만, 초기 투자비용이 업계 평균보다 약 15% 높아 진입 장벽이 있는 점은 고려사항입니다.</p>
+            </div>
+        </div>
+            
+        <!-- 푸터 섹션 -->
+        <div class="mt-6 text-sm text-gray-500 text-center">
+            <p>© 2025 AI 기반 가맹본부 신뢰지수 분석 시스템</p>
+            <p class="mt-1">본 대시보드는 공정거래위원회 정보공개서, 공공데이터포털 가맹정보 API 등 국내 공공데이터를 활용하여 작성되었습니다.</p>
+            <p class="mt-1">데이터 최종 업데이트: 2025년 04월 15일</p>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환 기능
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // 모든 탭 비활성화
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 선택한 탭 활성화
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // 브랜드 행 클릭 이벤트 (상세 분석 표시)
+        document.querySelectorAll('.brand-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const brandId = row.getAttribute('data-brand');
+                showBrandDetail(brandId);
+            });
+        });
+        
+        // 상세 분석 닫기 버튼
+        document.getElementById('close-detail').addEventListener('click', () => {
+            document.getElementById('brand-detail').style.display = 'none';
+        });
+        
+        // 비교하기 버튼 클릭 이벤트
+        document.getElementById('compare-button').addEventListener('click', () => {
+            const brand1 = document.getElementById('brand-select-1').value;
+            const brand2 = document.getElementById('brand-select-2').value;
+            updateComparisonCharts(brand1, brand2);
+        });
+        
+        // 브랜드 상세 정보 표시 함수
+        function showBrandDetail(brandId) {
+            // 실제 구현에서는 서버에서 데이터를 가져와야 함
+            // 여기서는 예시 데이터 사용
+            const brandData = {
+                'ediya': {
+                    name: '이디야',
+                    trustScore: 87.3,
+                    grade: '우수',
+                    rank: '2위 / 41개',
+                    vsAverage: '+18.4점',
+                    vsLastYear: '+2.1점',
+                    terminationRate: '1.7%',
+                    closureRate: '3.2%',
+                    averageSales: '6.2억원',
+                    violation: '없음',
+                    totalStores: '3,126개',
+                    newStores: '401개',
+                    closedStores: '100개',
+                    terminatedStores: '53개',
+                    insight: '이디야는 신뢰지수 87.3점(우수)으로, 커피전문점 업종 내에서 2위를 차지하고 있습니다. 계약해지율 1.7%와 폐점률 3.2%는 모두 업종 평균(각각 3.4%, 7.6%)보다 현저히 낮아 가맹점 안정성이 매우 높은 수준입니다. 2023년부터 3년간 꾸준히 신뢰지수가 상승 중이며, 특히 가맹점 순증가율이 9.6%로 업계 평균(4.2%)의 2배 이상을 기록했습니다. 최근 3년간 법 위반 이력이 없고, 연평균 매출 6.2억원으로 업종 평균 대비 17% 높은 수준을 유지하고 있어, 예비 창업자에게 안정적인 선택지로 평가됩니다. 다만, 초기 투자비용이 업계 평균보다 약 15% 높아 진입 장벽이 있는 점은 고려사항입니다.'
+                },
+                'starbucks': {
+                    name: '스타벅스',
+                    trustScore: 92.5,
+                    grade: '우수',
+                    rank: '1위 / 41개',
+                    vsAverage: '+23.6점',
+                    vsLastYear: '+0.8점',
+                    terminationRate: '0.8%',
+                    closureRate: '1.2%',
+                    averageSales: '9.8억원',
+                    violation: '없음',
+                    totalStores: '1,785개',
+                    newStores: '120개',
+                    closedStores: '22개',
+                    terminatedStores: '14개',
+                    insight: '스타벅스는 신뢰지수 92.5점으로 업계 최고 수준을 기록하고 있습니다. 특히 계약해지율 0.8%와 폐점률 1.2%는 업종 평균의 1/4 수준에 불과해 가맹점 안정성이 매우 뛰어납니다. 평균매출 9.8억원은 업종 내 최고 수준으로, 가맹점 수익성이 높은 편입니다. 다만 초기 투자비용이 약 10억원으로 진입장벽이 높고, 신규 출점율이 점차 둔화되는 추세입니다. 법 위반 이력이 없고 가맹점 만족도가 높아 안정적인 프랜차이즈로 평가됩니다.'
+                },
+                'twosome': {
+                    name: '투썸플레이스',
+                    trustScore: 51.4,
+                    grade: '주의',
+                    rank: '28위 / 41개',
+                    vsAverage: '-17.5점',
+                    vsLastYear: '-2.6점',
+                    terminationRate: '4.4%',
+                    closureRate: '8.8%',
+                    averageSales: '5.6억원',
+                    violation: '법 위반 2건',
+                    totalStores: '1,478개',
+                    newStores: '83개',
+                    closedStores: '130개',
+                    terminatedStores: '65개',
+                    insight: '투썸플레이스는 신뢰지수 51.4점(주의)으로, 커피전문점 업종 내에서 하위권(28위/41개)에 위치하고 있습니다. 계약해지율(4.4%)과 폐점률(8.8%)이 모두 업종 평균보다 높고, 최근 3년간 법 위반 이력도 2건이 있어 신뢰도에 부정적 영향을 주고 있습니다. 특히 최근 2년간 신뢰지수가 지속적으로 하락 중이며(-2.6점), 가맹점 순감소 추세(연간 -3.2%)도 우려요인입니다. 평균매출(5.6억원)은 업종 평균과 비슷한 수준이나, 수익성 대비 초기 투자비용이 높은 편으로 ROI가 낮습니다. 예비 창업자는 투자 전 세심한 검토와 주의가 필요합니다.'
+                }
+            };
+            
+            // 기본 정보 업데이트
+            if (brandData[brandId]) {
+                const data = brandData[brandId];
+                document.getElementById('detail-brand-name').textContent = data.name;
+                document.getElementById('detail-trust-score').textContent = data.trustScore;
+                document.getElementById('detail-trust-grade').textContent = data.grade;
+                document.getElementById('detail-industry-rank').textContent = data.rank;
+                document.getElementById('detail-vs-average').textContent = data.vsAverage;
+                document.getElementById('detail-vs-last-year').textContent = data.vsLastYear;
+                document.getElementById('detail-termination-rate').textContent = data.terminationRate;
+                document.getElementById('detail-closure-rate').textContent = data.closureRate;
+                document.getElementById('detail-average-sales').textContent = data.averageSales;
+                document.getElementById('detail-violation').textContent = data.violation;
+                document.getElementById('detail-total-stores').textContent = data.totalStores;
+                document.getElementById('detail-new-stores').textContent = data.newStores;
+                document.getElementById('detail-closed-stores').textContent = data.closedStores;
+                document.getElementById('detail-terminated-stores').textContent = data.terminatedStores;
+                document.getElementById('detail-insight').textContent = data.insight;
+                
+                // 등급에 따른 색상 변경
+                const gradeElement = document.getElementById('detail-trust-grade');
+                if (data.grade === '우수') {
+                    gradeElement.className = 'px-2 py-1 rounded text-white bg-green-500 text-sm font-medium';
+                } else if (data.grade === '양호') {
+                    gradeElement.className = 'px-2 py-1 rounded text-white bg-blue-500 text-sm font-medium';
+                } else if (data.grade === '보통') {
+                    gradeElement.className = 'px-2 py-1 rounded text-white bg-yellow-500 text-sm font-medium';
+                } else if (data.grade === '주의') {
+                    gradeElement.className = 'px-2 py-1 rounded text-white bg-red-500 text-sm font-medium';
+                }
+                
+                // 게이지바 업데이트
+                const terminationRate = parseFloat(data.terminationRate);
+                const closureRate = parseFloat(data.closureRate);
+                const salesValue = parseFloat(data.averageSales);
+                
+                document.getElementById('detail-termination-gauge').style.width = `${terminationRate * 10}%`;
+                document.getElementById('detail-closure-gauge').style.width = `${closureRate * 10}%`;
+                document.getElementById('detail-sales-gauge').style.width = `${salesValue * 10}%`;
+                
+                if (terminationRate < 2) {
+                    document.getElementById('detail-termination-gauge').className = 'gauge-fill bg-green-500';
+                } else if (terminationRate < 4) {
+                    document.getElementById('detail-termination-gauge').className = 'gauge-fill bg-yellow-500';
+                } else {
+                    document.getElementById('detail-termination-gauge').className = 'gauge-fill bg-red-500';
+                }
+                
+                if (closureRate < 5) {
+                    document.getElementById('detail-closure-gauge').className = 'gauge-fill bg-green-500';
+                } else if (closureRate < 8) {
+                    document.getElementById('detail-closure-gauge').className = 'gauge-fill bg-yellow-500';
+                } else {
+                    document.getElementById('detail-closure-gauge').className = 'gauge-fill bg-red-500';
+                }
+                
+                // 상세 페이지 차트 업데이트
+                updateDetailCharts(brandId);
+                
+                // 상세 페이지 표시
+                document.getElementById('brand-detail').style.display = 'block';
+                
+                // 페이지 스크롤
+                document.getElementById('brand-detail').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // 브랜드 상세 차트 업데이트
+        function updateDetailCharts(brandId) {
+            // 가맹점 현황 차트
+            const storesCtx = document.getElementById('detail-stores-chart').getContext('2d');
+            const storesData = {
+                'ediya': [2778, 3126, 401, 100, 53],
+                'starbucks': [1687, 1785, 120, 22, 14],
+                'twosome': [1525, 1478, 83, 130, 65]
+            };
+            
+            new Chart(storesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['작년 가맹점수', '현재 가맹점수', '신규 출점', '폐점', '계약해지'],
+                    datasets: [{
+                        label: '가맹점 현황',
+                        data: storesData[brandId],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 3년간 추이 차트
+            const trendCtx = document.getElementById('detail-trend-chart').getContext('2d');
+            const trendData = {
+                'ediya': {
+                    trust: [83.4, 85.2, 87.3],
+                    termination: [2.1, 1.9, 1.7],
+                    closure: [4.0, 3.5, 3.2],
+                    sales: [5.8, 6.0, 6.2]
+                },
+                'starbucks': {
+                    trust: [91.2, 91.7, 92.5],
+                    termination: [1.0, 0.9, 0.8],
+                    closure: [1.5, 1.3, 1.2],
+                    sales: [9.2, 9.6, 9.8]
+                },
+                'twosome': {
+                    trust: [55.6, 54.0, 51.4],
+                    termination: [3.8, 4.1, 4.4],
+                    closure: [7.6, 8.2, 8.8],
+                    sales: [5.4, 5.5, 5.6]
+                }
+            };
+            
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2023년', '2024년', '2025년'],
+                    datasets: [
+                        {
+                            label: '신뢰지수',
+                            data: trendData[brandId].trust,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            yAxisID: 'y',
+                            tension: 0.2
+                        },
+                        {
+                            label: '계약해지율(%)',
+                            data: trendData[brandId].termination,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            yAxisID: 'y1',
+                            tension: 0.2
+                        },
+                        {
+                            label: '폐점률(%)',
+                            data: trendData[brandId].closure,
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            yAxisID: 'y1',
+                            tension: 0.2
+                        },
+                        {
+                            label: '평균매출(억원)',
+                            data: trendData[brandId].sales,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            yAxisID: 'y2',
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '3년간 주요 지표 추이'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '신뢰지수'
+                            },
+                            min: 0,
+                            max: 100
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '해지/폐점률(%)'
+                            },
+                            min: 0,
+                            max: 20,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '매출(억원)'
+                            },
+                            min: 0,
+                            max: 10,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 비교 차트 업데이트
+        function updateComparisonCharts(brand1, brand2) {
+            // 브랜드 데이터 (실제로는 서버에서 가져와야 함)
+            const brandData = {
+                'ediya': {
+                    name: '이디야',
+                    trust: 87.3,
+                    termination: 1.7,
+                    closure: 3.2,
+                    sales: 6.2,
+                    violation: 0,
+                    stores: 3126,
+                    growth: 12.8
+                },
+                'starbucks': {
+                    name: '스타벅스',
+                    trust: 92.5,
+                    termination: 0.8,
+                    closure: 1.2,
+                    sales: 9.8,
+                    violation: 0,
+                    stores: 1785,
+                    growth: 6.7
+                },
+                'twosome': {
+                    name: '투썸플레이스',
+                    trust: 51.4,
+                    termination: 4.4,
+                    closure: 8.8,
+                    sales: 5.6,
+                    violation: 2,
+                    stores: 1478,
+                    growth: 5.6
+                },
+                'hollys': {
+                    name: '할리스',
+                    trust: 78.6,
+                    termination: 2.3,
+                    closure: 5.1,
+                    sales: 5.8,
+                    violation: 0,
+                    stores: 520,
+                    growth: 8.2
+                },
+                'mega': {
+                    name: '메가커피',
+                    trust: 82.1,
+                    termination: 2.1,
+                    closure: 4.3,
+                    sales: 5.5,
+                    violation: 0,
+                    stores: 1926,
+                    growth: 15.4
+                }
+            };
+            
+            // 브랜드 이름 가져오기
+            const brand1Name = brandData[brand1].name;
+            const brand2Name = brandData[brand2].name;
+            
+            // 레이더 차트 업데이트
+            const radarCtx = document.getElementById('radar-chart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['신뢰지수', '계약안정성', '폐점안정성', '매출성과', '법규준수', '성장성'],
+                    datasets: [
+                        {
+                            label: brand1Name,
+                            data: [
+                                brandData[brand1].trust,
+                                100 - (brandData[brand1].termination * 10),
+                                100 - (brandData[brand1].closure * 5),
+                                brandData[brand1].sales * 10,
+                                100 - (brandData[brand1].violation * 20),
+                                brandData[brand1].growth * 5
+                            ],
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                        },
+                        {
+                            label: brand2Name,
+                            data: [
+                                brandData[brand2].trust,
+                                100 - (brandData[brand2].termination * 10),
+                                100 - (brandData[brand2].closure * 5),
+                                brandData[brand2].sales * 10,
+                                100 - (brandData[brand2].violation * 20),
+                                brandData[brand2].growth * 5
+                            ],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(255, 99, 132, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '브랜드 종합 평가 비교'
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 막대 비교 차트 업데이트
+            const barCtx = document.getElementById('bar-comparison-chart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['신뢰지수', '계약해지율(%)', '폐점률(%)', '평균매출(억원)', '법 위반(건)', '가맹점 증가율(%)'],
+                    datasets: [
+                        {
+                            label: brand1Name,
+                            data: [
+                                brandData[brand1].trust,
+                                brandData[brand1].termination,
+                                brandData[brand1].closure,
+                                brandData[brand1].sales,
+                                brandData[brand1].violation,
+                                brandData[brand1].growth
+                            ],
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                        },
+                        {
+                            label: brand2Name,
+                            data: [
+                                brandData[brand2].trust,
+                                brandData[brand2].termination,
+                                brandData[brand2].closure,
+                                brandData[brand2].sales,
+                                brandData[brand2].violation,
+                                brandData[brand2].growth
+                            ],
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '주요 지표 수치 비교'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 비교 표 업데이트
+            document.querySelector('#comparison-tab table thead tr').innerHTML = `
+                <th class="py-2 px-4 text-left">지표</th>
+                <th class="py-2 px-4 text-left">${brand1Name}</th>
+                <th class="py-2 px-4 text-left">${brand2Name}</th>
+                <th class="py-2 px-4 text-left">차이</th>
+            `;
+            
+            const rows = document.querySelectorAll('#comparison-tab table tbody tr');
+            
+            // 신뢰지수 행 업데이트
+            const trustDiff = (brandData[brand1].trust - brandData[brand2].trust).toFixed(1);
+            rows[0].innerHTML = `
+                <td class="py-3 px-4 font-medium">신뢰지수</td>
+                <td class="py-3 px-4">${brandData[brand1].trust}</td>
+                <td class="py-3 px-4">${brandData[brand2].trust}</td>
+                <td class="py-3 px-4 ${trustDiff > 0 ? 'text-green-600' : 'text-red-600'}">${trustDiff > 0 ? '+' + trustDiff : trustDiff}</td>
+            `;
+            
+            // 계약해지율 행 업데이트
+            const terminationDiff = (brandData[brand1].termination - brandData[brand2].termination).toFixed(1);
+            rows[1].innerHTML = `
+                <td class="py-3 px-4 font-medium">계약해지율</td>
+                <td class="py-3 px-4">${brandData[brand1].termination}%</td>
+                <td class="py-3 px-4">${brandData[brand2].termination}%</td>
+                <td class="py-3 px-4 ${terminationDiff < 0 ? 'text-green-600' : 'text-red-600'}">${terminationDiff < 0 ? terminationDiff : '+' + terminationDiff}%</td>
+            `;
+            
+            // 폐점률 행 업데이트
+            const closureDiff = (brandData[brand1].closure - brandData[brand2].closure).toFixed(1);
+            rows[2].innerHTML = `
+                <td class="py-3 px-4 font-medium">폐점률</td>
+                <td class="py-3 px-4">${brandData[brand1].closure}%</td>
+                <td class="py-3 px-4">${brandData[brand2].closure}%</td>
+                <td class="py-3 px-4 ${closureDiff < 0 ? 'text-green-600' : 'text-red-600'}">${closureDiff < 0 ? closureDiff : '+' + closureDiff}%</td>
+            `;
+            
+            // 평균매출액 행 업데이트
+            const salesDiff = (brandData[brand1].sales - brandData[brand2].sales).toFixed(1);
+            rows[3].innerHTML = `
+                <td class="py-3 px-4 font-medium">평균매출액(연)</td>
+                <td class="py-3 px-4">${brandData[brand1].sales}억원</td>
+                <td class="py-3 px-4">${brandData[brand2].sales}억원</td>
+                <td class="py-3 px-4 ${salesDiff > 0 ? 'text-green-600' : 'text-red-600'}">${salesDiff > 0 ? '+' + salesDiff : salesDiff}억원</td>
+            `;
+            
+            // 법 위반 건수 행 업데이트
+            const violationDiff = brandData[brand1].violation - brandData[brand2].violation;
+            rows[4].innerHTML = `
+                <td class="py-3 px-4 font-medium">법 위반 건수</td>
+                <td class="py-3 px-4">${brandData[brand1].violation}건</td>
+                <td class="py-3 px-4">${brandData[brand2].violation}건</td>
+                <td class="py-3 px-4 ${violationDiff < 0 ? 'text-green-600' : 'text-red-600'}">${violationDiff < 0 ? violationDiff : '+' + violationDiff}건</td>
+            `;
+            
+            // 가맹점수 행 업데이트
+            const storesDiff = brandData[brand1].stores - brandData[brand2].stores;
+            rows[5].innerHTML = `
+                <td class="py-3 px-4 font-medium">가맹점수</td>
+                <td class="py-3 px-4">${brandData[brand1].stores.toLocaleString()}개</td>
+                <td class="py-3 px-4">${brandData[brand2].stores.toLocaleString()}개</td>
+                <td class="py-3 px-4 ${storesDiff > 0 ? 'text-green-600' : 'text-red-600'}">${storesDiff > 0 ? '+' + storesDiff.toLocaleString() : storesDiff.toLocaleString()}개</td>
+            `;
+            
+            // 신규출점율 행 업데이트
+            const growthDiff = (brandData[brand1].growth - brandData[brand2].growth).toFixed(1);
+            rows[6].innerHTML = `
+                <td class="py-3 px-4 font-medium">신규출점율</td>
+                <td class="py-3 px-4">${brandData[brand1].growth}%</td>
+                <td class="py-3 px-4">${brandData[brand2].growth}%</td>
+                <td class="py-3 px-4 ${growthDiff > 0 ? 'text-green-600' : 'text-red-600'}">${growthDiff > 0 ? '+' + growthDiff : growthDiff}%</td>
+            `;
+            
+            // 분석 인사이트 업데이트
+            const insightElement = document.querySelector('#comparison-tab .bg-blue-50 p');
+            insightElement.innerHTML = `${brand1Name}와 ${brand2Name}의 신뢰지수 차이는 <strong>${Math.abs(trustDiff)}</strong>점으로 ${trustDiff > 0 ? brand1Name + '가 우수' : brand2Name + '가 우수'}합니다. 특히 계약해지율(${brand1Name} ${brandData[brand1].termination}% vs ${brand2Name} ${brandData[brand2].termination}%)과 폐점률(${brand1Name} ${brandData[brand1].closure}% vs ${brand2Name} ${brandData[brand2].closure}%)에서 ${Math.abs(terminationDiff)}%p, ${Math.abs(closureDiff)}%p 차이가 나타나며, ${brandData[brand1].violation > 0 ? brand1Name : brandData[brand2].violation > 0 ? brand2Name : '두 브랜드 모두 법 위반 이력이 없어 신뢰도가 높은 편'}입니다. ${salesDiff !== 0 ? `평균매출은 ${salesDiff > 0 ? brand1Name + '가 ' + salesDiff + '억원 더 높으며' : brand2Name + '가 ' + Math.abs(salesDiff) + '억원 더 높으며'}` : '두 브랜드의 평균매출은 비슷한 수준이며'}, ${brand1Name}는 ${brandData[brand1].growth}%의 신규출점률을, ${brand2Name}는 ${brandData[brand2].growth}%의 신규출점률을 보이고 있습니다.`;
+        }
+        
+        // 페이지 로드 시 차트 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 분포 차트
+            const distributionCtx = document.getElementById('distribution-chart').getContext('2d');
+            new Chart(distributionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['40점 미만', '40-55점', '55-70점', '70-85점', '85-100점'],
+                    datasets: [{
+                        label: '브랜드 수',
+                        data: [3, 7, 12, 14, 5],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(255, 159, 64, 0.5)',
+                            'rgba(255, 205, 86, 0.5)',
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(75, 192, 192, 0.5)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '신뢰지수 점수대별 브랜드 분포 (커피전문점)'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '브랜드 수'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '신뢰지수 구간'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 레이더 차트 (비교 탭)
+            const radarCtx = document.getElementById('radar-chart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['신뢰지수', '계약안정성', '폐점안정성', '매출성과', '법규준수', '성장성'],
+                    datasets: [
+                        {
+                            label: '이디야',
+                            data: [87.3, 83, 84, 62, 100, 64],
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                        },
+                        {
+                            label: '투썸플레이스',
+                            data: [51.4, 56, 56, 56, 60, 28],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(255, 99, 132, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '브랜드 종합 평가 비교'
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 막대 비교 차트 (비교 탭)
+            const barComparisonCtx = document.getElementById('bar-comparison-chart').getContext('2d');
+            new Chart(barComparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['신뢰지수', '계약해지율(%)', '폐점률(%)', '평균매출(억원)', '법 위반(건)', '가맹점 증가율(%)'],
+                    datasets: [
+                        {
+                            label: '이디야',
+                            data: [87.3, 1.7, 3.2, 6.2, 0, 12.8],
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                        },
+                        {
+                            label: '투썸플레이스',
+                            data: [51.4, 4.4, 8.8, 5.6, 2, 5.6],
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '주요 지표 수치 비교'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 업종 비교 차트 (업종 분석 탭)
+            const industryComparisonCtx = document.getElementById('industry-comparison-chart').getContext('2d');
+            new Chart(industryComparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['커피전문점', '치킨', '피자', '편의점', '베이커리'],
+                    datasets: [{
+                        label: '평균 신뢰지수',
+                        data: [68.9, 72.3, 65.8, 77.5, 70.2],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '업종별 평균 신뢰지수 비교'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // 업종 지표 차트 (업종 분석 탭)
+            const industryMetricsCtx = document.getElementById('industry-metrics-chart').getContext('2d');
+            new Chart(industryMetricsCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['신뢰지수', '계약안정성', '폐점안정성', '매출성과', '법규준수', '성장성'],
+                    datasets: [
+                        {
+                            label: '프리미엄',
+                            data: [82.4, 80, 82.5, 75, 80, 65],
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)'
+                        },
+                        {
+                            label: '일반',
+                            data: [67.8, 68, 61, 52, 68.7, 60],
+                            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                            borderColor: 'rgba(255, 206, 86, 1)'
+                        },
+                        {
+                            label: '저가형',
+                            data: [62.3, 59, 52, 38, 61.5, 70],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '커피전문점 유형별 성과 비교'
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // 신뢰지수 추이 차트 (추이 분석 탭)
+            const trustTrendCtx = document.getElementById('trust-trend-chart').getContext('2d');
+            new Chart(trustTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2023년', '2024년', '2025년'],
+                    datasets: [
+                        {
+                            label: '평균 신뢰지수',
+                            data: [65.2, 67.5, 68.9],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.2,
+                            fill: true
+                        },
+                        {
+                            label: '상위 20% 평균',
+                            data: [85.1, 86.8, 88.4],
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.0)',
+                            borderDash: [5, 5],
+                            tension: 0.2
+                        },
+                        {
+                            label: '하위 20% 평균',
+                            data: [41.6, 43.2, 45.7],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.0)',
+                            borderDash: [5, 5],
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '신뢰지수 연도별 추이'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // 해지/폐점 추이 차트 (추이 분석 탭)
+            const terminationTrendCtx = document.getElementById('termination-trend-chart').getContext('2d');
+            new Chart(terminationTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2023년', '2024년', '2025년'],
+                    datasets: [
+                        {
+                            label: '평균 계약해지율(%)',
+                            data: [3.9, 3.6, 3.4],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '평균 폐점률(%)',
+                            data: [8.7, 8.1, 7.6],
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '법 위반 건수',
+                            data: [23, 18, 15],
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.2,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '계약해지·폐점·법위반 추이'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '비율(%)'
+                            },
+                            min: 0,
+                            max: 15
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '법 위반(건)'
+                            },
+                            min: 0,
+                            max: 30,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    <script id="html_badge_script1">
+        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDsfdagDEhCBb50a9jSmJtVMgHfPTICSK4sT3OkjhUnNCNL7OrLiMLGg4TC5ntS4QwvTtutizy3M%2Bdry98z6kxHnHcaVr7pqMstTgI1lrEyLQzKg9RkFu3p0P0LmuqyWa3nnO4hqQ7VpfcOHOrfBj860YMrzWQY7qQFIwa2lgwzy%2B3zP4qGDHS4Y%2BiRuPDS5%2F%2FSfMDP%2F5rY4UaD4zBpy0WWNbHB5GyuSE3l9znOHE8m3F3KlBQYAJADPGGMjwrB7ypwjVcqqNh2%2BUpKTOhqyriLg27yBWkAVr4KZxo2uQrxyb%2F%2FwPWCtw3jb9bpojkDvlcD6FpwmruTeHTYwJGNR7udVDsMSiCFwpaH1tyXgNdGRj%2FmGSLruEPUpPOOBtVopmlSXj8IVJ5itF9fJrfnV%2Fgz%2BD%2BKkKFgfi2nAt%2FnMsOyk7pOYOX%2FQWz5wd%2BLjE%2FDwF3YR8zREOaCNpgukBpI7Bcu%2BAK7tHf%2Fn5fFjaXxJQJ5qq6FLQflvpy%2FaHumeFPK2LA5GNI8Ac2IR31RpHALl%2FHiN37r9WzmM1Agv%2BDusrrfTofQicPrQHvBT365rCZK1Awm5ubpo9DJMOomtS4sP%2BtlHMbR5kplvmeddFzcXdkSw0";
+        window.__genspark_locale = "ko-KR";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDsfdagDEhCBb50a9jSmJtVMgHfPTICSK4sT3OkjhUnNCNL7OrLiMLGg4TC5ntS4QwvTtutizy3M+dry98z6kxHnHcaVr7pqMstTgI1lrEyLQzKg9RkFu3p0P0LmuqyWa3nnO4hqQ7VpfcOHOrfBj860YMrzWQY7qQFIwa2lgwzy+3zP4qGDHS4Y+iRuPDS5//SfMDP/5rY4UaD4zBpy0WWNbHB5GyuSE3l9znOHE8m3F3KlBQYAJADPGGMjwrB7ypwjVcqqNh2+UpKTOhqyriLg27yBWkAVr4KZxo2uQrxyb//wPWCtw3jb9bpojkDvlcD6FpwmruTeHTYwJGNR7udVDsMSiCFwpaH1tyXgNdGRj/mGSLruEPUpPOOBtVopmlSXj8IVJ5itF9fJrfnV/gz+D+KkKFgfi2nAt/nMsOyk7pOYOX/QWz5wd+LjE/DwF3YR8zREOaCNpgukBpI7Bcu+AK7tHf/n5fFjaXxJQJ5qq6FLQflvpy/aHumeFPK2LA5GNI8Ac2IR31RpHALl/HiN37r9WzmM1Agv+DusrrfTofQicPrQHvBT365rCZK1Awm5ubpo9DJMOomtS4sP+tlHMbR5kplvmeddFzcXdkSw0";
+    </script>
+    
